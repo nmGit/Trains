@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.28)
+enable_language(CXX)
+set(CMAKE_CXX_STANDARD 20)
+
 
 
 ##### CMake Output Settings #####
@@ -17,8 +20,13 @@ add_executable(Trains
 	main.cpp
 )
 
+##### User Interface #####
+add_subdirectory(interface)
+
 ##### External Libraries #####
 add_subdirectory(external)
+add_subdirectory(libs)
 
 ##### Link Libraries #####
-target_link_libraries(Trains PRIVATE SDL3::SDL3)
+target_link_libraries(Trains PRIVATE Drafter)
+target_link_libraries(Trains PRIVATE CityPlanner)

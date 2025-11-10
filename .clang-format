@@ -1,0 +1,16 @@
+# Clang-Format configuration for TrainGame
+# Target language: C++ (C++98/03 era; project declares C++99 compatibility)
+# Adjust any option as needed for team preferences.
+
+BasedOnStyle: LLVM
+IncludeBlocks: Regroup
+IndentWidth: 4
+TabWidth: 4
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false

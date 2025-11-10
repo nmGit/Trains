@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.20)
+project(drafter)
+enable_language(CXX)
+
+add_library(Drafter)
+
+target_sources(Drafter PRIVATE 
+	"source/Canvas.cpp"
+)
+
+target_include_directories(Drafter PUBLIC 
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+##### Log Library #####
+target_link_libraries(Drafter PUBLIC Log)
+
+##### SDL3 Library #####
+target_link_libraries(Drafter PUBLIC SDL3::SDL3)
+
+##### Events Library #####
+target_link_libraries(Drafter PUBLIC Events)
