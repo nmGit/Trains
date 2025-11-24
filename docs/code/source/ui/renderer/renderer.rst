@@ -6,3 +6,4 @@ Renderer
    :maxdepth: 2
 
    Canvas <canvas.rst>
+   Shapes <shapes.rst>

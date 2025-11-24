@@ -17,15 +17,14 @@ set(SDL_SHARED ON)
 ##### Main Executable #####
 project(Trains)
 add_executable(Trains 
-	main.cpp
+	"source/main.cpp"
 )
 
-##### User Interface #####
-add_subdirectory(interface)
 
 ##### External Libraries #####
 add_subdirectory(external)
 add_subdirectory(libs)
+add_subdirectory(source)
 
 ##### Link Libraries #####
 target_link_libraries(Trains PRIVATE Drafter)

@@ -5,6 +5,9 @@
 
 /**
  * @brief The WorldView class is responsible for visualizing the world.
+ * 
+ * It uses the Drafer::Canvas to render the current state of the
+ * CityPlanner::World. This class used the API provided by drafter.
  */
 class WorldView {
   public:
@@ -19,8 +22,12 @@ class WorldView {
     /**
      * @brief Draws the current state of the world onto the canvas.
      */
-    void Draw();
+    void Service();
 
+    /**
+     * @brief Starts the WorldView, initializing necessary components.
+     */
+    void Start();
   protected:
 
   private:

@@ -5,8 +5,11 @@ enable_language(CXX)
 add_library(Drafter)
 
 target_sources(Drafter PRIVATE 
-	"source/Canvas.cpp"
-)
+	source/Canvas.cpp
+	source/Shape.cpp
+    source/Shapes/Circle.cpp
+ "source/Shapes/Label.cpp" "include/Drafter/Shapes/Label.h")
+
 
 target_include_directories(Drafter PUBLIC 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"

@@ -6,6 +6,11 @@
 TrainGame Code documentation
 ============================
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Game Architecture
+
+   High-Level Overview <architecture/game_overview.rst> 
 
 .. toctree::
    :maxdepth: 2
@@ -20,7 +25,7 @@ TrainGame Code documentation
    :caption: User Interface
 
    User Interface <ui/ui.rst>
-   Renderer <ui/renderer/renderer.rst>
+   Drafter <ui/renderer/renderer.rst>
 
 .. toctree::
    :maxdepth: 2
@@ -33,4 +38,12 @@ TrainGame Code documentation
    :caption: Code Style
 
    Conventions <codestyle/codestyle.rst>
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
+   Namespace List <generated/namespacelist.rst>
+   Class List <generated/classlist.rst>
+   File List <generated/filelist.rst>
 

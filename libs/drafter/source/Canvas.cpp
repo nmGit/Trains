@@ -48,14 +48,6 @@ void Canvas::Start() {
     CreateWindow();
 }
 
-void Canvas::Resize(rect_t size) {
-    m_resizeEvent.Emit(size, *this);
-}
-
-Canvas::resize_event_t Canvas::OnResize() {
-    return m_resizeEvent;
-}
-
 Canvas::ServiceResult Canvas::Service() {
     SDL_Event event;
     if (SDL_PollEvent(&event)) {
