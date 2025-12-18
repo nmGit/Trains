@@ -29,7 +29,15 @@ class Region {
      * @brief Adds a city to the region.
      * @param c Reference to the City object to add.
      */
-    void AddCity(City &c);
+    template <typename... Args>
+    City& AddCity(Args&&... args) {
+        auto &c = m_cities.emplace_back(args...);
+
+        m_city_added_event.Emit(c);
+        Log::Info(m_log_context, "City added to region. Total cities: %zu",
+                  m_cities.size());
+        return c;
+    }
 
     /**
      * @brief Returns a reference to the event that is triggered when a city is

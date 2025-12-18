@@ -8,7 +8,7 @@ target_sources(CityPlanner PRIVATE
 	source/City.cpp
 	source/World.cpp
 	source/Region.cpp
-)
+ "include/CityPlanner/Types.h")
 
 target_include_directories(CityPlanner PUBLIC 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"

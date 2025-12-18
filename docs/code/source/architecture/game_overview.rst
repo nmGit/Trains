@@ -7,25 +7,41 @@ Game Architecture Overview
 
 .. mermaid::
 
-    flowchart TD
+    flowchart LR
+
     subgraph Graphics
-        World --"Is Draw By"--> WorldView
+        direction TB
+        
         WorldView --"Draws On"--> Canvas
 
         UI
     end
-
+    
     subgraph Simulation
-        Core("Game Core")
-        Core --"Modifies"--> World
+        direction TB
+
+        subgraph CityPlanner
+            direction TB
+            World --> Regions
+            Regions --> Cities
+        end
+
+        Core("Game Core") --> CityPlanner
+
     end
 
-    UI --"Provides Input To"--> Core
+    vm("View Model") <--"Is Presented By"--> Graphics
+    vm <--> Simulation
     UI --"Renders On"--> Canvas
+
+View Model
+==========
+
+.. doxygenclass:: Trains::ViewModel
+    
 
 WorldView
 =========
 
-The WorldView draws the state of the game onto the Drafter::Canvase. It listens to all events emitted by the game and updates the visual representation of the world accordingly.
-It does not own the canvas, it only draws on it.
+.. doxygenclass:: Trains::WorldView
 

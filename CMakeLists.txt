@@ -16,10 +16,28 @@ set(SDL_SHARED ON)
 
 ##### Main Executable #####
 project(Trains)
-add_executable(Trains 
-	"source/main.cpp"
-)
 
+if(BUILD_GAME)
+	set(EXECUTABLE_NAME TrainGame)
+	add_executable(${EXECUTABLE_NAME} 
+		"source/main.cpp"
+	)
+endif()
+
+##### Build Tests #####
+if(TRAINS_BUILD_TESTS)
+	
+endif()
+
+##### Build Examples #####
+if(TRAINS_BUILD_EXAMPLES)
+	set(EXECUTABLE_NAME TrianGameExamples)
+	add_executable(${EXECUTABLE_NAME} 
+		"examples/Examples.cpp"
+	)
+	message(STATUS "Building Examples")
+	add_subdirectory(examples)
+endif()
 
 ##### External Libraries #####
 add_subdirectory(external)
@@ -27,5 +45,5 @@ add_subdirectory(libs)
 add_subdirectory(source)
 
 ##### Link Libraries #####
-target_link_libraries(Trains PRIVATE Drafter)
-target_link_libraries(Trains PRIVATE CityPlanner)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE Drafter)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE CityPlanner)

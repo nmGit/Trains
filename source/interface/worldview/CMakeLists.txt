@@ -1,3 +1,3 @@
-target_sources(Trains PRIVATE 
+target_sources(${EXECUTABLE_NAME} PRIVATE 
 	WorldView.cpp
 )

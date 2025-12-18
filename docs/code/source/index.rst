@@ -16,9 +16,7 @@ TrainGame Code documentation
    :maxdepth: 2
    :caption: Game Entities
    
-   World <world/world.rst>
-   Regions <world/region.rst>
-   Cities <world/cities.rst>
+   City Planner <world/city_planner.rst>
 
 .. toctree::
    :maxdepth: 2

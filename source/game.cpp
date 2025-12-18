@@ -1,8 +1,10 @@
 #include "Game.h"
 
-Trains::Game::Game() {}
+namespace Trains {
 
-void Trains::Game::Start() {
+Game::Game() {}
+
+void Game::Start() {
 
     m_canvas.Start();
 
@@ -13,3 +15,4 @@ void Trains::Game::Start() {
         m_canvas.Service();
     }
 }
+} // namespace Trains

@@ -9,14 +9,16 @@ void Canvas::CreateWindow() {
                        "com.example.renderer-clear");
     Log::Info(m_log_context, "Initializing SDL...");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        Log::Error(m_log_context, "Couldn't initialize SDL: %s", SDL_GetError());
+        Log::Error(m_log_context, "Couldn't initialize SDL: %s",
+                   SDL_GetError());
         return;
     }
 
     if (!SDL_CreateWindowAndRenderer("examples/renderer/clear", 640, 480,
                                      SDL_WINDOW_RESIZABLE, &window,
                                      &renderer)) {
-        Log::Error(m_log_context, "Couldn't create window/renderer: %s", SDL_GetError());
+        Log::Error(m_log_context, "Couldn't create window/renderer: %s",
+                   SDL_GetError());
         return;
     }
     SDL_SetRenderLogicalPresentation(renderer, 640, 480,
@@ -30,22 +32,29 @@ void Canvas::Draw() {
                        1000.0; /* convert from milliseconds to seconds. */
     /* choose the color for the frame we will draw. The sine wave trick makes it
      * fade between colors smoothly. */
-    const float red   = (float)(0.5 + 0.5 * SDL_sin(now));
-    const float green = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 2 / 3));
-    const float blue  = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 4 / 3));
     SDL_SetRenderDrawColorFloat(
-        renderer, red, green, blue,
-        SDL_ALPHA_OPAQUE_FLOAT); /* new color, full alpha. */
+        renderer, 0, 0, 0, SDL_ALPHA_OPAQUE_FLOAT); /* new color, full alpha. */
 
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
+    // 2. Set the color for drawing points (e.g., white)
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
+   
+    // Render all children
+    for (auto &item : m_items) {
+        item->Draw();
+    }
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
 }
 
 void Canvas::Start() {
     CreateWindow();
+}
+
+SDL_Renderer *Canvas::GetRenderer() {
+    return renderer;
 }
 
 Canvas::ServiceResult Canvas::Service() {
@@ -59,6 +68,10 @@ Canvas::ServiceResult Canvas::Service() {
 
     Draw();
     return ServiceResult::Continue;
+}
+
+void Canvas::AddItem(Shape &item) {
+    m_items.push_back(&item);
 }
 
 } // namespace Drafter

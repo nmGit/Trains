@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Events/Event.h"
 #include "Types.h"
 namespace Drafter {

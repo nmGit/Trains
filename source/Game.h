@@ -1,6 +1,8 @@
 #pragma once
 
 #include "interface/worldview/WorldView.h"
+#include "ViewModel.h"
+#include "engine/Core.h"
 
 namespace Trains {
 class Game {
@@ -11,8 +13,9 @@ class Game {
 
   protected:
   private:
-    CityPlanner::World m_world;
+    Trains::Core       m_core;
     Drafter::Canvas    m_canvas;
-    WorldView          m_world_view{m_world, m_canvas};
+    Trains::WorldView          m_world_view{m_canvas};
+    Trains::ViewModel  m_view_model{m_core, m_world_view};
 };
 } // namespace Trains

@@ -3,10 +3,11 @@
 #include "CityPlanner/World.h"
 #include "Drafter/Drafter.h"
 
+namespace Trains {
 /**
  * @brief The WorldView class is responsible for visualizing the world.
- * 
- * It uses the Drafer::Canvas to render the current state of the
+ *
+ * It uses the Drafter::Canvas to render the current state of the
  * CityPlanner::World. This class used the API provided by drafter.
  */
 class WorldView {
@@ -21,6 +22,7 @@ class WorldView {
 
     /**
      * @brief Draws the current state of the world onto the canvas.
+     * 
      */
     void Service();
 
@@ -28,10 +30,14 @@ class WorldView {
      * @brief Starts the WorldView, initializing necessary components.
      */
     void Start();
-  protected:
 
+  protected:
+    void SlotRegionAdded(CityPlanner::Region &region);
+    void SlotCityAdded(CityPlanner::City &region);
   private:
-    CityPlanner::World &m_world;
     Drafter::Canvas    &m_canvas;
+    CityPlanner::World &m_world;
+
     LogContext          m_log_context{"WorldView"};
 };
+} // namespace Trains

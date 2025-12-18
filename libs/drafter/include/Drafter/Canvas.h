@@ -30,8 +30,9 @@ class Canvas : public Shape  {
 
     ServiceResult Service();
 
-   
+    void AddItem(Shape &item);
 
+    SDL_Renderer *GetRenderer();
   protected:
     void CreateWindow();
     void Draw();
@@ -44,5 +45,7 @@ class Canvas : public Shape  {
     resize_event_t m_resizeEvent;
 
     LogContext m_log_context{"Drafter::Canvas"};
+
+    std::vector<Shape *> m_items;
 };
 } // namespace Drafter

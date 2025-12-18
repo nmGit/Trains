@@ -2,14 +2,14 @@
 
 namespace CityPlanner {
 
-World::World() {
-}
+World::World() {}
 
-void World::AddRegion(Region &r) {
-    m_regions.push_back(r);
+Region &World::AddRegion() {
+    auto &r = m_regions.emplace_back();
     m_regionAddedEvent.Emit(r);
     Log::Info(m_log_context, "Region added to world. Total regions: %zu",
               m_regions.size());
+    return r;
 }
 
 World::region_added_event_t &World::OnRegionAdded() {
