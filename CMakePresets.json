@@ -5,7 +5,6 @@
       "name": "examples",
       "displayName": "Default Config",
       "description": "Default build with examples enabled",
-      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/examples",
       "cacheVariables": {
         "TRAINS_BUILD_EXAMPLES": "ON",
@@ -16,7 +15,6 @@
       "name": "main",
       "displayName": "Game Build",
       "description": "Builds the Game",
-      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/game",
       "cacheVariables": {
         "TRAINS_BUILD_EXAMPLES": "OFF",

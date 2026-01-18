@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries as static by default" FORCE)
 
 ##### CMake Output Settings #####
 # From https://github.com/libsdl-org/SDL/blob/main/docs/INTRO-cmake.md
@@ -45,5 +45,6 @@ add_subdirectory(libs)
 add_subdirectory(source)
 
 ##### Link Libraries #####
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE Drafter)
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE CityPlanner)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC Drafter)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC CityPlanner)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC Log)

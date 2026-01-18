@@ -5,3 +5,9 @@
 [submodule "external/SDL_ttf"]
 	path = external/SDL_ttf
 	url = https://github.com/libsdl-org/SDL_ttf.git
+[submodule "external/blend2d"]
+	path = external/blend2d
+	url = https://github.com/blend2d/blend2d.git
+[submodule "external/asmjit"]
+	path = external/asmjit
+	url = https://github.com/asmjit/asmjit.git
