@@ -1,8 +1,7 @@
 #include "Drafter/Shapes/Circle.h"
 
-#include <SDL3/SDL.h>
-
 namespace Drafter {
+
 Circle::Circle(Canvas &canvas, config_t config)
     : m_canvas(canvas), m_config(config) {
     canvas.AddItem(*this);
@@ -11,23 +10,19 @@ Circle::Circle(Canvas &canvas, config_t config)
 Circle::~Circle() {}
 
 void Circle::Draw() {
-    // Draw the circle using SDL
-    SDL_SetRenderDrawColor(m_canvas.GetRenderer(), 255, 100, 0, 255); // Red color
+    BLContext &ctx = m_canvas.GetRenderer();
 
-    // Plot points around the circle
-    std::vector<SDL_FPoint> points;
-    int                     num_points = 30;
-          // Plot points around the circle
-    for (int i = 0; i < num_points; i++) {
-        points.emplace_back(m_config.position.x +
-                m_config.radius * std::sin(2 * SDL_PI_F * i / num_points),
-            m_config.position.y +
-                m_config.radius * std::cos(2 * SDL_PI_F * i / num_points));
-    }
+    ctx.save();
 
-    // Connect the last segment to the first to complete the circle
-    points.emplace_back(points.front());
+    ctx.set_stroke_style(BLRgba32(0xFFFF6400)); // Orange
+    ctx.set_stroke_width(2.0);
 
-    SDL_RenderLines(m_canvas.GetRenderer(), points.data(), points.size());
+    ctx.stroke_circle(BLCircle(
+        m_config.position.x,
+        m_config.position.y,
+        m_config.radius));
+
+    ctx.restore();
 }
+
 } // namespace Drafter

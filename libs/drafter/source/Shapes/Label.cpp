@@ -1,6 +1,6 @@
 #include "Drafter/Shapes/Label.h"
 
-#include "SDL3_ttf/SDL_ttf.h"
+//#include "SDL3_ttf/SDL_ttf.h"
 
 namespace Drafter {
 Label::Label(Canvas &canvas, config_t config) {

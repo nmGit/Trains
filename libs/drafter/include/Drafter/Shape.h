@@ -68,6 +68,13 @@ class Shape {
      */
     resize_event_t &OnResize();
 
+    /**
+    * @brief Get Geometry of Shape
+    * 
+    * @return A reference to the geometry of the shape.
+    */
+    geometry_t &GetGeometry();
+
     draw_event_t &onDraw();
     /// @} // Events
 

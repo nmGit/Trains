@@ -19,6 +19,10 @@ void Shape::Reposition(point_t position) {
     m_reposition_event.Emit(*this);
 };
 
+geometry_t &Shape::GetGeometry() {
+    return m_geometry;
+}
+
 point_t Shape::Position() {
     return m_geometry.pos;
 }

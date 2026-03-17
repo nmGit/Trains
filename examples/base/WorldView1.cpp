@@ -25,7 +25,7 @@ void RunWorldView1() {
     world.AddRegion().AddCity(cityConfig);
 
     while (1) {
-        SDL_Delay(100);
+        SDL_Delay(10);
         worldview.Service();
         canvas.Service();
     }
