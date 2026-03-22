@@ -10,25 +10,19 @@ target_sources(Drafter PRIVATE
     source/Shapes/Circle.cpp
     source/Shapes/Label.cpp
     source/Shapes/NGon.cpp
+    source/Shapes/HexGrid.cpp
     include/Drafter/Shapes/Label.h
-    include/Drafter/Shapes/NGon.h)
-
+    include/Drafter/Shapes/NGon.h
+    include/Drafter/Shapes/HexGrid.h 
+    include/Drafter/Utils.h
+    source/Utils.cpp
+)
 
 target_include_directories(Drafter PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-##### Log Library #####
 target_link_libraries(Drafter PUBLIC Log)
-
-##### Blend2D Library #####
 target_link_libraries(Drafter PUBLIC blend2d::blend2d)
-
-##### SDL3 Library #####
 target_link_libraries(Drafter PUBLIC SDL3::SDL3)
-
-##### SDL3_ttf Library #####
-#target_link_libraries(Drafter PUBLIC SDL3_ttf::SDL3_ttf)
-
-##### Events Library #####
 target_link_libraries(Drafter PUBLIC Events)

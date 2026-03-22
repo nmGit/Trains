@@ -15,5 +15,10 @@ Region &World::AddRegion() {
 World::region_added_event_t &World::OnRegionAdded() {
     return m_regionAddedEvent;
 }
-
+void World::Service() {
+    for (auto& r : m_regions)
+    {
+        r.Service();
+    }
+}
 } // namespace CityPlanner

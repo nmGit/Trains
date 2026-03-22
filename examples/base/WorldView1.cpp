@@ -16,18 +16,24 @@ void RunWorldView1() {
     CityPlanner::World world;
     Trains::WorldView  worldview(world, canvas);
 
-    CityPlanner::City::config_t cityConfig{"New City", {100, 100}};
+    CityPlanner::City::config_t cityConfig{"New City", {10, 5}};
+    CityPlanner::City::config_t city2Config{"New City2", {10, 15}};
+    CityPlanner::City::config_t city3Config{"New City3", {40, 5}};
 
     // Start the canvas
     canvas.Start();
     worldview.Start();
-
-    world.AddRegion().AddCity(cityConfig);
+    auto& reg = world.AddRegion();
+    reg.AddCity(cityConfig);
+    reg.AddCity(city2Config);
+    reg.AddCity(city3Config);
 
     while (1) {
         SDL_Delay(10);
+        // Advance the simulation
+        world.Service();
+        // Redraw the world
         worldview.Service();
-        canvas.Service();
     }
 }
 } // namespace Examples

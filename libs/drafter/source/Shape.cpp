@@ -31,7 +31,7 @@ Shape::draw_event_t &Shape::onDraw() {
     return m_draw_event;
 }
 
-void Shape::Draw() {
+void Shape::Draw(BLContext &ctx) {
     m_draw_event.Emit(*this);
 }
 

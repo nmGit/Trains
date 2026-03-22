@@ -11,7 +11,7 @@ class Label : public Shape {
     };
 
     Label(Canvas &canvas, config_t config);
-    void Draw() override;
+    void Draw(BLContext &ctx) override;
 
   protected:
   private:

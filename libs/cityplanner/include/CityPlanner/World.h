@@ -14,6 +14,9 @@ class World {
     typedef Event<void, Region &> region_added_event_t;
 
     World();
+
+    void    Service();
+
     Region &AddRegion();
 
     region_added_event_t &OnRegionAdded();

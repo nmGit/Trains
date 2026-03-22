@@ -1,9 +1,9 @@
 #pragma once
 #include "Drafter/Shape.h"
-#include "Drafter/Canvas.h"
 #include "Drafter/Types.h"
 
 namespace Drafter {
+
 class NGon : public Shape {
   public:
     struct config_t {
@@ -11,12 +11,13 @@ class NGon : public Shape {
         float   radius;
         size_t  sides;
     };
-    NGon(Canvas &canvas, config_t config);
+
+    explicit NGon(config_t config);
     ~NGon();
-    void Draw() override;
+    void Draw(BLContext &ctx) override;
 
   private:
-    config_t  m_config;
-    Canvas   &m_canvas;
+    config_t m_config;
 };
+
 } // namespace Drafter

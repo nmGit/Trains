@@ -1,14 +1,20 @@
 #pragma once
 
+#include "CityView.h"
 #include "CityPlanner/World.h"
 #include "Drafter/Drafter.h"
+#include "Drafter/Shapes/HexGrid.h"
+
+#include <memory>
+#include <optional>
+#include <vector>
 
 namespace Trains {
 /**
  * @brief The WorldView class is responsible for visualizing the world.
  *
  * It uses the Drafter::Canvas to render the current state of the
- * CityPlanner::World. This class used the API provided by drafter.
+ * CityPlanner::World. This class uses the API provided by Drafter.
  */
 class WorldView {
   public:
@@ -22,7 +28,6 @@ class WorldView {
 
     /**
      * @brief Draws the current state of the world onto the canvas.
-     * 
      */
     void Service();
 
@@ -33,11 +38,17 @@ class WorldView {
 
   protected:
     void SlotRegionAdded(CityPlanner::Region &region);
-    void SlotCityAdded(CityPlanner::City &region);
+    void SlotCityAdded(CityPlanner::City &city);
+
   private:
+    static constexpr float k_cell_radius = 10.f;
+
     Drafter::Canvas    &m_canvas;
     CityPlanner::World &m_world;
 
-    LogContext          m_log_context{"WorldView"};
+    std::optional<Drafter::HexGrid>           m_hex_grid;
+    std::vector<std::unique_ptr<CityView>>    m_city_views;
+
+    LogContext m_log_context{"WorldView"};
 };
 } // namespace Trains

@@ -6,6 +6,7 @@
 
 #include <SDL3/SDL.h>
 #include <blend2d/blend2d.h>
+
 namespace Drafter {
 /**
  * @brief The root of all ui objects.
@@ -30,16 +31,19 @@ class Canvas : public Shape {
 
     ServiceResult Service();
 
-    void          AddItem(Shape &item);
     BLContext &GetRenderer();
+
+    // Canvas manages its own rendering lifecycle via Service(); it does not
+    // participate in the immediate-mode Draw(ctx) call chain.
+    void Draw(BLContext &) override {}
 
   protected:
     void CreateWindow();
     void Draw();
 
   private:
-    static constexpr unsigned int WINDOW_WIDTH  = 480;
-    static constexpr unsigned int WINDOW_HEIGHT = 480;
+    static constexpr unsigned int WINDOW_WIDTH  = 1000;
+    static constexpr unsigned int WINDOW_HEIGHT = 500;
 
     // We will use this renderer to draw into this window every frame.
     SDL_Window   *window   = NULL;
@@ -54,7 +58,6 @@ class Canvas : public Shape {
     resize_event_t m_resizeEvent;
 
     LogContext m_log_context{"Drafter::Canvas"};
-
-    std::vector<Shape *> m_items;
 };
+
 } // namespace Drafter

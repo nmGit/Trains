@@ -4,10 +4,9 @@
 
 namespace Drafter {
 Label::Label(Canvas &canvas, config_t config) {
-    canvas.AddItem(*this);
 }
 
-void Label::Draw() {
+void Label::Draw(BLContext &ctx) {
     // Drawing logic for the label would go here
 
 }

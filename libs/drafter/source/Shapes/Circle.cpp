@@ -1,26 +1,21 @@
 #include "Drafter/Shapes/Circle.h"
 
+#include <blend2d/blend2d.h>
+
 namespace Drafter {
 
-Circle::Circle(Canvas &canvas, config_t config)
-    : m_canvas(canvas), m_config(config) {
-    canvas.AddItem(*this);
-}
+Circle::Circle(config_t config) : m_config(config) {}
 
 Circle::~Circle() {}
 
-void Circle::Draw() {
-    BLContext &ctx = m_canvas.GetRenderer();
-
+void Circle::Draw(BLContext &ctx) {
     ctx.save();
 
-    ctx.set_stroke_style(BLRgba32(0xFFFF6400)); // Orange
+    ctx.set_stroke_style(BLRgba32(0xFFFF6400));
     ctx.set_stroke_width(2.0);
-
-    ctx.stroke_circle(BLCircle(
-        m_config.position.x,
-        m_config.position.y,
-        m_config.radius));
+    ctx.stroke_circle(BLCircle(m_config.position.x,
+                               m_config.position.y,
+                               m_config.radius));
 
     ctx.restore();
 }

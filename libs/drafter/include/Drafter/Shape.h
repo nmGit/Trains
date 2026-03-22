@@ -2,6 +2,10 @@
 
 #include "Events/Event.h"
 #include "Types.h"
+
+// Forward declaration — avoids pulling the full blend2d header into every TU
+class BLContext;
+
 namespace Drafter {
 
 /**
@@ -15,74 +19,33 @@ class Shape {
     Shape();
     ~Shape();
 
-    /**
-     * @brief Resizes the canvas to the specified size.
-     *
-     * @param size The new size of the canvas.
-     */
-    void Resize(rect_t size);
-
-    /**
-     * @brief Gets the size of the shape.
-     *
-     * @return The current size of the shape.
-     */
-    rect_t Size();
-
-    /**
-     * @brief Repositions the shape to the specified position.
-     *
-     * @param position The new position of the shape.
-     */
-    void Reposition(point_t position);
-
-    /**
-     * @brief Gets the current size of the shape.
-     *
-     * @return The current size of the shape.
-     */
+    void    Resize(rect_t size);
+    rect_t  Size();
+    void    Reposition(point_t position);
     point_t Position();
 
-    virtual void Draw() = 0;
+    /**
+     * @brief Draw the shape onto the provided Blend2D context.
+     *
+     * @param ctx The active BLContext to draw into.
+     */
+    virtual void Draw(BLContext &ctx) = 0;
+
+    geometry_t     &GetGeometry();
     /**
      * @name Events
      * @{
      */
-    /**
-     * @brief Defines a type alias for an event that is triggered on resize
-     * operations.
-     */
     typedef Event<void, Shape &, rect_t> resize_event_t;
+    typedef Event<void, Shape &>         draw_event_t;
+    typedef Event<void, Shape &>         reposition_event_t;
 
-    typedef Event<void, Shape &> draw_event_t;
-
-    typedef Event<void, Shape &> reposition_event_t;
-
-    /**
-     * @brief Resize event.
-     *
-     * Subscribe to this resize event to be notified when the canvas size
-     * changes.
-     *
-     * @return A reference to the resize event.
-     */
     resize_event_t &OnResize();
-
-    /**
-    * @brief Get Geometry of Shape
-    * 
-    * @return A reference to the geometry of the shape.
-    */
-    geometry_t &GetGeometry();
-
-    draw_event_t &onDraw();
+    draw_event_t   &onDraw();
     /// @} // Events
 
   private:
-    // Shape properties
-    geometry_t m_geometry;
-
-    // Events
+    geometry_t     m_geometry;
     resize_event_t m_resize_event;
     draw_event_t   m_draw_event;
     draw_event_t   m_reposition_event;

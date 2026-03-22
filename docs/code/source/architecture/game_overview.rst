@@ -11,7 +11,8 @@ Game Architecture Overview
 
     subgraph Graphics
         direction TB
-        
+
+        CityView -- "Draws On"--> Canvas 
         WorldView --"Draws On"--> Canvas
 
         UI
