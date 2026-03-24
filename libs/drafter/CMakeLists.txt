@@ -4,7 +4,8 @@ enable_language(CXX)
 
 add_library(Drafter)
 
-target_sources(Drafter PRIVATE 
+target_sources(Drafter PRIVATE
+    source/Camera.cpp
     source/Canvas.cpp
     source/Shape.cpp
     source/Shapes/Circle.cpp
@@ -13,9 +14,12 @@ target_sources(Drafter PRIVATE
     source/Shapes/HexGrid.cpp
     include/Drafter/Shapes/Label.h
     include/Drafter/Shapes/NGon.h
-    include/Drafter/Shapes/HexGrid.h 
+    include/Drafter/Camera.h
+    include/Drafter/Shapes/HexGrid.h
     include/Drafter/Utils.h
     source/Utils.cpp
+    include/Drafter/Utils/Color.h
+    source/Utils/Color.cpp
 )
 
 target_include_directories(Drafter PUBLIC 

@@ -12,7 +12,7 @@ void Game::Start() {
 
     while (m_canvas.Service() == Drafter::Canvas::ServiceResult::Continue) {
         m_world_view.Service();
-        m_canvas.Service();
+        m_canvas.Present();
     }
 }
 } // namespace Trains

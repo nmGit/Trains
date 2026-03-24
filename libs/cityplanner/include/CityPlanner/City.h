@@ -21,7 +21,7 @@ class City {
      */
     struct growth_config_t {
         /** @brief Base probability threshold. Closer to 1.0 means slower growth. */
-        float p_base = 0.990;
+        float p_base = 0.990f;
 
         /**
          * @brief Added to the threshold per neighboring claimed tile.
@@ -30,7 +30,16 @@ class City {
          * producing spiky or irregular city shapes. Negative values do the
          * opposite.
          */
-        float bias = -0.001f;
+        float bias = -0.01f;
+
+        /**
+         * @brief Added to the threshold per tile of city area.
+         *
+         * Positive values slow growth as the city gets larger (diminishing
+         * returns). Negative values accelerate growth with size (runaway
+         * expansion). Zero disables the area term entirely.
+         */
+        float area_bias = 1E-5;
     };
 
     /**
@@ -94,8 +103,9 @@ class City {
     /**
      * @brief Computes the growth threshold for a candidate tile.
      *
-     * Threshold = clamp(p_base + bias * n, 0, 1), where n is the number of
-     * this city's already-claimed tiles that neighbor the candidate tile.
+     * Threshold = clamp(p_base + bias * n + area_bias * A, 0, 1), where n is
+     * the number of this city's already-claimed tiles that neighbor the
+     * candidate tile and A is the total area of the city in tiles.
      * A city's roll must exceed this value for it to claim the tile.
      *
      * @param tile The candidate tile to evaluate.

@@ -6,8 +6,9 @@ namespace Drafter {
 Label::Label(Canvas &canvas, config_t config) {
 }
 
-void Label::Draw(BLContext &ctx) {
+void Label::Draw(BLContext &ctx, draw_params_t params) {
     // Drawing logic for the label would go here
-
+    (void)ctx;
+    (void)params;
 }
 } // namespace Drafter

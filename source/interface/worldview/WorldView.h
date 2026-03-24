@@ -2,6 +2,7 @@
 
 #include "CityView.h"
 #include "CityPlanner/World.h"
+#include "Drafter/Camera.h"
 #include "Drafter/Drafter.h"
 #include "Drafter/Shapes/HexGrid.h"
 
@@ -14,7 +15,8 @@ namespace Trains {
  * @brief The WorldView class is responsible for visualizing the world.
  *
  * It uses the Drafter::Canvas to render the current state of the
- * CityPlanner::World. This class uses the API provided by Drafter.
+ * CityPlanner::World.  Pan and zoom are handled by a Drafter::Camera
+ * attached to the canvas.
  */
 class WorldView {
   public:
@@ -45,9 +47,10 @@ class WorldView {
 
     Drafter::Canvas    &m_canvas;
     CityPlanner::World &m_world;
+    Drafter::Camera     m_camera;
 
-    std::optional<Drafter::HexGrid>           m_hex_grid;
-    std::vector<std::unique_ptr<CityView>>    m_city_views;
+    std::optional<Drafter::HexGrid>        m_hex_grid;
+    std::vector<std::unique_ptr<CityView>> m_city_views;
 
     LogContext m_log_context{"WorldView"};
 };

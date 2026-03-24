@@ -43,7 +43,10 @@ float City::ComputeThreshold(hex_coord_t tile) const {
     for (const auto &neighbor : Neighbors(tile)) {
         if (m_tiles.count(neighbor)) ++count;
     }
-    float p = m_config.growth.p_base + m_config.growth.bias * static_cast<float>(count);
+    const float area = static_cast<float>(m_tiles.size());
+    float p = m_config.growth.p_base
+            + m_config.growth.bias      * static_cast<float>(count)
+            + m_config.growth.area_bias * area;
     return std::clamp(p, 0.0f, 1.0f);
 }
 

@@ -29,11 +29,15 @@ void RunWorldView1() {
     reg.AddCity(city3Config);
 
     while (1) {
-        SDL_Delay(10);
+        //SDL_Delay(10);
         // Advance the simulation
         world.Service();
-        // Redraw the world
+        // Begin frame: poll events, apply camera transform
+        if (canvas.Service() == Drafter::Canvas::ServiceResult::Quit) break;
+        // Draw world content (in camera-transformed space)
         worldview.Service();
+        // End frame: restore transform, flip to screen
+        canvas.Present();
     }
 }
 } // namespace Examples

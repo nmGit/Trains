@@ -27,9 +27,14 @@ class Shape {
     /**
      * @brief Draw the shape onto the provided Blend2D context.
      *
-     * @param ctx The active BLContext to draw into.
+     * Implementations should use @p view_bounds to skip geometry that lies
+     * entirely outside the visible area. Shapes that do not yet perform
+     * culling may ignore this parameter.
+     *
+     * @param ctx         The active BLContext to draw into.
+     * @param view_bounds Visible area in world space. Used for culling.
      */
-    virtual void Draw(BLContext &ctx) = 0;
+    virtual void Draw(BLContext &ctx, draw_params_t params);
 
     geometry_t     &GetGeometry();
     /**

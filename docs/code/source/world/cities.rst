@@ -25,11 +25,13 @@ A city grows based on the following algorithm:
 
 .. math::
    \begin{align}
-      p = p' + b \cdot n \\
+      p = p' + b_n \cdot n + b_a \cdot A \\
       \text{where} \\
       p &:= \text{probability of growth into tile} \space T \\
       n &:= \text{Number of adjacent tiles occupied by the city} \\
-      b &:= \text{Neighbor bias} \\
+      b_n &:= \text{Neighbor bias} \\
+      b_a &:= \text{Area bias} \\
+      A &:= \text{Area} \\
       p' &:= \text{Base growth probability} \\
    \end{align}
 

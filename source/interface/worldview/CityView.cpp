@@ -1,6 +1,7 @@
 #include "CityView.h"
 
 #include "CityPlanner/Utils.h"
+#include "Drafter/Utils/Color.h"
 
 #include <algorithm>
 #include <blend2d/blend2d.h>
@@ -11,25 +12,6 @@
 namespace Trains {
 
 namespace {
-
-/// Converts HSV (h in [0,360), s/v in [0,1]) to a packed 0xAARRGGBB color.
-BLRgba32 HsvToRgb(float h, float s, float v, uint8_t alpha = 255) {
-    float c  = v * s;
-    float x  = c * (1.0f - std::fabs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
-    float m  = v - c;
-    float r, g, b;
-    if      (h < 60)  { r=c; g=x; b=0; }
-    else if (h < 120) { r=x; g=c; b=0; }
-    else if (h < 180) { r=0; g=c; b=x; }
-    else if (h < 240) { r=0; g=x; b=c; }
-    else if (h < 300) { r=x; g=0; b=c; }
-    else              { r=c; g=0; b=x; }
-    return BLRgba32(
-        static_cast<uint8_t>((r + m) * 255),
-        static_cast<uint8_t>((g + m) * 255),
-        static_cast<uint8_t>((b + m) * 255),
-        alpha);
-}
 
 float RandomHue() {
     static std::mt19937                          rng{std::random_device{}()};
@@ -54,8 +36,8 @@ constexpr int k_edge_to_neighbor[6] = {0, 2, 5, 1, 3, 4};
 CityView::CityView(CityPlanner::City *city, Drafter::Canvas &canvas, float cell_radius)
     : m_city(city), m_canvas(canvas), m_cell_radius(cell_radius) {
     float hue     = RandomHue();
-    m_border_color = HsvToRgb(hue, 0.90f, 1.00f, 255);
-    m_fill_color   = HsvToRgb(hue, 0.70f, 0.45f, 180);
+    m_border_color = Drafter::Color::HsvToBL({hue, 0.90f, 1.00f, 255});
+    m_fill_color   = Drafter::Color::HsvToBL({hue, 0.70f, 0.45f, 180});
 }
 
 BLPoint CityView::TileCenter(CityPlanner::hex_coord_t tile) const {
@@ -65,24 +47,26 @@ BLPoint CityView::TileCenter(CityPlanner::hex_coord_t tile) const {
             static_cast<double>(p.y * m_cell_radius)};
 }
 
-void CityView::Service() {
+void CityView::Service(Drafter::draw_params_t params) {
     const auto &tiles = m_city->GetTiles();
     if (tiles.empty()) return;
 
-    BLContext &ctx = m_canvas.GetRenderer();
+    BLContext              &ctx         = m_canvas.GetRenderer();
+    const Drafter::bounds_t view_bounds = params.view_bounds;
 
-    constexpr float k_two_pi    = 2.0f * std::numbers::pi_v<float>;
-    constexpr float k_step      = k_two_pi / 6.0f;
-    const     float r           = m_cell_radius;
+    constexpr float k_two_pi = 2.0f * std::numbers::pi_v<float>;
+    constexpr float k_step   = k_two_pi / 6.0f;
+    const     float r        = m_cell_radius;
 
     // --- Fill pass ---
-    // Fill each claimed tile as a solid hexagon with the semi-transparent color.
-    // Drawing tile-by-tile lets Blend2D composite them naturally.
+    // Skip tiles whose bounding circle does not intersect the view.
     ctx.save();
     ctx.set_fill_style(m_fill_color);
 
     for (const auto &tile : tiles) {
         auto [cx, cy] = TileCenter(tile);
+        if (!view_bounds.Intersects(static_cast<float>(cx), static_cast<float>(cy), r)) continue;
+
         BLPath hex;
         hex.move_to(cx + r * std::cos(0.0f), cy + r * std::sin(0.0f));
         for (int v = 1; v < 6; ++v) {
@@ -96,8 +80,7 @@ void CityView::Service() {
     ctx.restore();
 
     // --- Border pass ---
-    // Stroke only edges where the neighboring tile is not part of this city.
-    // This produces a clean outer boundary without internal dividing lines.
+    // Stroke only exterior edges (neighbor not in city) for visible tiles.
     ctx.save();
     ctx.set_stroke_style(m_border_color);
     ctx.set_stroke_width(static_cast<double>(r * 0.25f));
@@ -106,9 +89,10 @@ void CityView::Service() {
 
     BLPath border;
     for (const auto &tile : tiles) {
-        auto [cx, cy]  = TileCenter(tile);
-        auto  neighbors = CityPlanner::Neighbors(tile);
+        auto [cx, cy] = TileCenter(tile);
+        if (!view_bounds.Intersects(static_cast<float>(cx), static_cast<float>(cy), r)) continue;
 
+        auto neighbors = CityPlanner::Neighbors(tile);
         for (int e = 0; e < 6; ++e) {
             if (tiles.count(neighbors[k_edge_to_neighbor[e]])) continue;
 

@@ -20,10 +20,10 @@ TrainGame Code documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Interface
+   :caption: Rendering
 
-   User Interface <ui/ui.rst>
    Drafter <ui/renderer/renderer.rst>
+   User Interface <ui/ui.rst>
 
 .. toctree::
    :maxdepth: 2

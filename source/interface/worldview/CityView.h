@@ -2,6 +2,7 @@
 
 #include "CityPlanner/City.h"
 #include "Drafter/Canvas.h"
+#include "Drafter/Types.h"
 
 #include <blend2d/blend2d.h>
 
@@ -23,7 +24,7 @@ class CityView {
   public:
     CityView(CityPlanner::City *city, Drafter::Canvas &canvas, float cell_radius);
 
-    void Service();
+    void Service(Drafter::draw_params_t params);
 
   private:
     /// Returns the pixel-space center of a tile (scaled by m_cell_radius).
