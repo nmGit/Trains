@@ -1,0 +1,3 @@
+[tool.esbonio.sphinx]
+buildCommand = ["sphinx-build", "-M", "dirhtml", ".", "./_build"]
+pythonCommand = ["D:/TrainGame/docs/code/env/Scripts/python.exe"]

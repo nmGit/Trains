@@ -6,10 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import sphinx_rtd_theme
 project = 'TrainGame Code'
 copyright = '2025, Noah Meltzer'
 author = 'Noah Meltzer'
-
+master_doc = 'source/index'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -19,7 +20,7 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 # Breathe configuration
-breathe_projects = {"TrainGame": "../build/xml"}
+breathe_projects = {"TrainGame": "build/xml"}
 breathe_default_project = "TrainGame"
 breathe_default_members = ('members', 'undoc-members', 'allow-dot-graphs')
 breathe_show_include = True

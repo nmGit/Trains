@@ -5,3 +5,4 @@
 /docs/code/source/generated/*
 /build/*
 /.claude/
+/docs/code/_build

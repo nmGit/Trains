@@ -14,9 +14,11 @@ TrainGame Code documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Game Entities
+   :caption: Game Mechanics
    
    City Planner <world/city_planner.rst>
+   Resources <resources/resources.rst>
+   Production <resources/production.rst>
 
 .. toctree::
    :maxdepth: 2
