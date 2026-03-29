@@ -39,7 +39,7 @@ class City {
          * returns). Negative values accelerate growth with size (runaway
          * expansion). Zero disables the area term entirely.
          */
-        float area_bias = 1E-5;
+        float area_bias = 1E-4;
     };
 
     /**

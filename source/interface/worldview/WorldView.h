@@ -43,6 +43,9 @@ class WorldView {
     void SlotCityAdded(CityPlanner::City &city);
 
   private:
+    /** @brief Renders terrain tiles (rivers, etc.) as filled hexagons. */
+    void DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params);
+
     static constexpr float k_cell_radius = 10.f;
 
     Drafter::Canvas    &m_canvas;

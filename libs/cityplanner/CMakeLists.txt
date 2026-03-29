@@ -10,7 +10,9 @@ target_sources(CityPlanner PRIVATE
 	source/Region.cpp
 	source/Utils.cpp
 	source/Terrain/Terrain.cpp
+	source/Terrain/Dirt.cpp
 	source/Terrain/Rivers.cpp
+	source/Terrain/Forests.cpp
  )
 
 target_include_directories(CityPlanner PUBLIC 

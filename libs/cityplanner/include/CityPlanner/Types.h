@@ -35,4 +35,23 @@ struct point_t {
     float x;
     float y;
 };
+/**
+ * @brief Per-tile terrain properties.
+ *
+ * Stores terrain features (rivers, forests, etc.) for a single hex tile.
+ * Tiles with no special properties use the default-constructed state.
+ */
+struct tile_properties_t {
+    bool        is_river    = false;
+    hex_coord_t downstream{};       ///< Next tile this river feeds into (valid when is_river)
+    int         river_width = 0;    ///< Visual width at this point (1 = center only)
+    float       water       = 0.f;  ///< Current water level (accumulated by simulation)
+
+    bool  is_forest       = false;
+    float wood            = 0.f;   ///< Accumulated wood resource
+    float growth_heading  = 0.f;   ///< Current growth direction (radians), drifts over time
+
+    float dirt_score      = 0.f;   ///< Soil quality [0, 1] — determines what may grow here
+};
+
 } // namespace CityPlanner

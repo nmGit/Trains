@@ -24,6 +24,10 @@ void Camera::Detach() {
     m_canvas = nullptr;
 }
 
+void Camera::SetBounds(bounds_t world_bounds) {
+    m_world_bounds = world_bounds;
+}
+
 void Camera::Update() {
     // --- Scroll momentum handoff ---
     // The first frame after scroll events stop, transfer the EMA velocity to
@@ -78,6 +82,43 @@ void Camera::Update() {
     m_log_zoom += (m_log_zoom_target - m_log_zoom) * k_zoom_smoothing;
     m_zoom = std::exp(m_log_zoom);
     m_zoom = std::clamp(m_zoom, k_zoom_min, k_zoom_max);
+
+    // --- World bounds clamping ---
+    if (m_world_bounds && m_canvas) {
+        const auto &geo = m_canvas->GetGeometry();
+        const auto &wb  = *m_world_bounds;
+
+        // Enforce minimum zoom so the view never exceeds the world.
+        const float min_zoom_x = geo.size.w / wb.w;
+        const float min_zoom_y = geo.size.h / wb.h;
+        const float effective_min = std::max({min_zoom_x, min_zoom_y, k_zoom_min});
+        if (m_zoom < effective_min) {
+            m_zoom     = effective_min;
+            m_log_zoom = std::log(m_zoom);
+        }
+        if (std::exp(m_log_zoom_target) < effective_min) {
+            m_log_zoom_target = std::log(effective_min);
+        }
+
+        // Clamp camera position so the view frustum stays inside bounds.
+        const float half_w = (geo.size.w * 0.5f) / m_zoom;
+        const float half_h = (geo.size.h * 0.5f) / m_zoom;
+        m_camera_x = std::clamp(m_camera_x, wb.x + half_w, wb.x + wb.w - half_w);
+        m_camera_y = std::clamp(m_camera_y, wb.y + half_h, wb.y + wb.h - half_h);
+
+        // Kill momentum when hitting bounds to avoid sticky-bouncing.
+        const float eps = 0.5f;
+        if (m_camera_x <= wb.x + half_w + eps || m_camera_x >= wb.x + wb.w - half_w - eps) {
+            m_pan_vx    = 0.f;
+            m_scroll_vx = 0.f;
+            m_drag_vx   = 0.f;
+        }
+        if (m_camera_y <= wb.y + half_h + eps || m_camera_y >= wb.y + wb.h - half_h - eps) {
+            m_pan_vy    = 0.f;
+            m_scroll_vy = 0.f;
+            m_drag_vy   = 0.f;
+        }
+    }
 }
 
 void Camera::ApplyTransform(BLContext &ctx, const geometry_t &geo) const {

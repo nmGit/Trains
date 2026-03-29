@@ -3,6 +3,7 @@
 #include "Types.h"
 
 #include <SDL3/SDL.h>
+#include <optional>
 
 // Forward declarations
 class BLContext;
@@ -76,6 +77,16 @@ class Camera {
     bounds_t GetViewBounds(const geometry_t &geo) const;
 
     /**
+     * @brief Sets world-space bounds that the view frustum must not exceed.
+     *
+     * When set, the camera clamps its position and minimum zoom so that
+     * GetViewBounds() always stays within these bounds.
+     *
+     * @param world_bounds The world-space rectangle to constrain to.
+     */
+    void SetBounds(bounds_t world_bounds);
+
+    /**
      * @brief Returns the current zoom level.
      *
      * @return Zoom factor; 1.0 is no zoom, >1 is zoomed in, <1 is zoomed out.
@@ -88,7 +99,8 @@ class Camera {
     /** @brief Handles an SDL event forwarded by the attached Canvas. */
     void HandleSDLEvent(const SDL_Event &event);
 
-    Canvas *m_canvas = nullptr;
+    Canvas                  *m_canvas = nullptr;
+    std::optional<bounds_t>  m_world_bounds;
 
     // --- Pan state ---
     float m_camera_x = 0.f;
