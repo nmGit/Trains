@@ -1,3 +1,6 @@
+##### Types Library #####
+add_subdirectory(types)
+
 ##### Events Library #####
 add_subdirectory(event)
 
@@ -9,5 +12,4 @@ add_subdirectory(drafter)
 
 ##### CityBuilder Library #####
 add_subdirectory(cityplanner)
-
 

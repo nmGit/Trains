@@ -1,5 +1,7 @@
 #include "CityPlanner/Region.h"
-#include "CityPlanner/Utils.h"
+
+#include "CityPlanner/World.h"
+#include "Types/Utils.h"
 
 #include <limits>
 #include <map>
@@ -27,19 +29,20 @@ Region::city_added_event_t &Region::OnCityAdded() {
     return m_city_added_event;
 }
 
-void Region::Service() {
-    GrowCities();
+void Region::Service(const World &world) {
+    GrowCities(world);
     for (auto &c : m_cities) {
-        c.Service();
+        c.Service(world);
     }
 }
 
-void Region::GrowCities() {
-    if (m_cities.empty()) return;
+void Region::GrowCities(const World &world) {
+    if (m_cities.empty())
+        return;
 
     // Build the union of all tiles claimed by any city so that frontier
     // candidates are never tiles already owned by another city.
-    std::set<hex_coord_t> all_claimed;
+    std::set<Types::hex_coord_t> all_claimed;
     for (const auto &city : m_cities) {
         all_claimed.insert(city.GetTiles().begin(), city.GetTiles().end());
     }
@@ -48,22 +51,27 @@ void Region::GrowCities() {
     // A city wins a tile only if its roll exceeds its own personalised
     // threshold AND the roll of every other competing city.
     struct bid_t {
-        size_t city_index = std::numeric_limits<size_t>::max(); // sentinel: no winner
-        float  roll       = 0.0f;
+        size_t city_index =
+            std::numeric_limits<size_t>::max(); // sentinel: no winner
+        float roll = 0.0f;
     };
-    std::map<hex_coord_t, bid_t> perimeter;
+    std::map<Types::hex_coord_t, bid_t> perimeter;
 
     for (size_t i = 0; i < m_cities.size(); ++i) {
         const auto &city = m_cities[i];
 
         // Frontier: neighbors of this city's tiles not claimed by any city.
-        std::set<hex_coord_t>    seen;
-        std::vector<hex_coord_t> frontier;
+        std::set<Types::hex_coord_t>    seen;
+        std::vector<Types::hex_coord_t> frontier;
         for (const auto &tile : city.GetTiles()) {
             for (const auto &neighbor : Neighbors(tile)) {
-                if (all_claimed.count(neighbor) == 0 && seen.insert(neighbor).second) {
+                if (all_claimed.count(neighbor) > 0)
+                    continue;
+                const auto *props = world.GetTileConst(neighbor);
+                if (props && props->is_river)
+                    continue;
+                if (seen.insert(neighbor).second)
                     frontier.push_back(neighbor);
-                }
             }
         }
 
@@ -71,7 +79,8 @@ void Region::GrowCities() {
         // must exceed its personalised threshold. The highest valid roll wins.
         // Only unclaimed tiles are eligible to enter the perimeter.
         for (const auto &tile : frontier) {
-            if (all_claimed.count(tile) > 0) continue;
+            if (all_claimed.count(tile) > 0)
+                continue;
             float threshold = city.ComputeThreshold(tile);
             float roll      = RandFloat();
             if (roll > threshold) {

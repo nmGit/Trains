@@ -8,6 +8,8 @@
 
 namespace CityPlanner {
 
+class World;
+
 /**
  * @brief Represents a geographical region containing cities.
  *
@@ -51,8 +53,11 @@ class Region {
      * @brief Advances the region by one simulation tick.
      *
      * Runs the city-growth competition and then services each city.
+     * River tiles in @p world are excluded from city frontiers.
+     *
+     * @param world The world, used to query tile properties during growth.
      */
-    void Service();
+    void Service(const World &world);
 
   private:
     /**
@@ -62,7 +67,7 @@ class Region {
      * their individual growth parameters. The city with the highest roll
      * that also exceeds its own threshold claims the tile.
      */
-    void GrowCities();
+    void GrowCities(const World &world);
 
     city_added_event_t m_city_added_event;
     std::deque<City>   m_cities; // deque: emplace_back never invalidates existing pointers

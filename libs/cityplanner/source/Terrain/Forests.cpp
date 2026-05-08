@@ -1,5 +1,5 @@
 #include "CityPlanner/Terrain/Forests.h"
-#include "CityPlanner/Utils.h"
+#include "Types/Utils.h"
 
 #include <cmath>
 #include <numbers>
@@ -11,12 +11,6 @@ namespace CityPlanner {
 // Generate — place seed tiles
 // ---------------------------------------------------------------------------
 
-static int HexDist(hex_coord_t a, hex_coord_t b) {
-    int dq = a.q - b.q;
-    int dr = a.r - b.r;
-    return (std::abs(dq) + std::abs(dr) + std::abs(dq + dr)) / 2;
-}
-
 void Forests::Generate(const forest_config_t &config, World &world,
                        std::mt19937 &rng) {
     const auto &wcfg = world.GetConfig();
@@ -27,14 +21,16 @@ void Forests::Generate(const forest_config_t &config, World &world,
     std::uniform_real_distribution<float> dist_angle(
         0.f, 2.f * std::numbers::pi_v<float>);
 
-    std::vector<hex_coord_t> seeds;
+    std::vector<Types::hex_coord_t> seeds;
     seeds.reserve(config.num_seeds);
 
     int attempts = 0;
     while (static_cast<int>(seeds.size()) < config.num_seeds &&
            attempts < config.num_seeds * 50) {
         ++attempts;
-        hex_coord_t candidate{dist_q(rng), dist_r(rng)};
+        int oq = dist_q(rng);
+        int or_ = dist_r(rng);
+        Types::hex_coord_t candidate{oq, or_ - oq / 2};
 
         // Don't place on river tiles or tiles outside the dirt score range.
         const auto *tp = world.GetTileConst(candidate);
@@ -71,7 +67,7 @@ void Forests::Service(const forest_service_config_t &config, World &world,
 
     // Snapshot frontier tiles to avoid mutating while iterating.
     struct frontier_t {
-        hex_coord_t coord;
+        Types::hex_coord_t coord;
         float       heading;
     };
     std::vector<frontier_t> frontier;
@@ -98,7 +94,7 @@ void Forests::Service(const forest_service_config_t &config, World &world,
 
         float new_heading = heading + drift(rng);
 
-        hex_coord_t best{};
+        Types::hex_coord_t best{};
         float       best_score = -2.f;
 
         for (auto &nb : Neighbors(coord)) {
@@ -109,8 +105,8 @@ void Forests::Service(const forest_service_config_t &config, World &world,
                         nbp->dirt_score > config.max_dirt_score))
                 continue;
 
-            auto  px    = AxialToPixel(nb);
-            auto  pc    = AxialToPixel(coord);
+            auto  px    = Types::AxialToPixel(nb);
+            auto  pc    = Types::AxialToPixel(coord);
             float dx    = px.x - pc.x;
             float dy    = px.y - pc.y;
             float angle = std::atan2(dy, dx);

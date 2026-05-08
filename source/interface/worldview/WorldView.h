@@ -1,11 +1,16 @@
 #pragma once
 
-#include "CityView.h"
+#include "CityPlanner/Rail/RailNetwork.h"
+#include "CityPlanner/Rail/RailNetworkBuilder.h"
 #include "CityPlanner/World.h"
+#include "CityView.h"
 #include "Drafter/Camera.h"
 #include "Drafter/Drafter.h"
 #include "Drafter/Shapes/HexGrid.h"
+#include "TransportView.h"
+#include "Types/Types.h"
 
+#include <SDL3/SDL.h>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -38,13 +43,58 @@ class WorldView {
      */
     void Start();
 
+    /**
+     * @brief Attaches a rail network for rendering.
+     *
+     * @param network Reference to the RailNetwork to visualize.
+     */
+    void SetNetwork(const CityPlanner::RailNetwork &network);
+
+    /**
+     * @brief Optionally attaches an externally-owned builder for ghost preview.
+     *
+     * When set, hovering over a tile while a track cursor is active will call
+     * Preview() and display the result as a ghost path.  Pass nullptr to
+     * detach.
+     *
+     * @param builder Pointer to the builder, or nullptr to disable ghost
+     * rendering.
+     */
+    void SetBuilder(const CityPlanner::RailNetworkBuilder *builder);
+
+    /**
+     * @brief Sets the starting cursor for ghost track preview.
+     *
+     * The ghost path is drawn from this cursor to the hovered tile each frame,
+     * provided a builder has been attached via SetBuilder().  Pass std::nullopt
+     * to stop preview rendering.
+     *
+     * @param cursor Last-placed segment cursor, or std::nullopt to clear.
+     */
+    void
+    SetTrackCursor(std::optional<CityPlanner::RailNetwork::segment_t> cursor);
+
   protected:
     void SlotRegionAdded(CityPlanner::Region &region);
     void SlotCityAdded(CityPlanner::City &city);
+    void SlotMouseMotion(const SDL_Event &event);
 
   private:
+    /** @brief Renders the background hex grid. */
+    void DrawHexGrid(BLContext &ctx, const Drafter::draw_params_t &params);
+
     /** @brief Renders terrain tiles (rivers, etc.) as filled hexagons. */
     void DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params);
+
+    /** @brief Renders all city views. */
+    void DrawCities(BLContext &ctx, const Drafter::draw_params_t &params);
+
+    /** @brief Renders the hovered tile highlight. */
+    void DrawHoveredTile(BLContext &ctx, const Drafter::draw_params_t &params);
+
+    /** @brief Renders the transportation network (tracks, semaphores, trains).
+     */
+    void DrawTransport(const Drafter::draw_params_t &params);
 
     static constexpr float k_cell_radius = 10.f;
 
@@ -54,6 +104,11 @@ class WorldView {
 
     std::optional<Drafter::HexGrid>        m_hex_grid;
     std::vector<std::unique_ptr<CityView>> m_city_views;
+    std::optional<TransportView>           m_transport_view;
+    std::optional<Types::hex_coord_t>      m_hovered_tile;
+
+    const CityPlanner::RailNetworkBuilder             *m_builder = nullptr;
+    std::optional<CityPlanner::RailNetwork::segment_t> m_track_cursor;
 
     LogContext m_log_context{"WorldView"};
 };

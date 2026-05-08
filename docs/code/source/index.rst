@@ -19,6 +19,7 @@ TrainGame Code documentation
    City Planner <world/city_planner.rst>
    Resources <resources/resources.rst>
    Production <resources/production.rst>
+   Transportation <transportation/transportation.rst>
 
 .. toctree::
    :maxdepth: 2
@@ -32,6 +33,7 @@ TrainGame Code documentation
    :caption: Utilities
 
    Utils <utilities/logging.rst>
+   Widgy <utilities/widgy.rst>
 
 .. toctree::
    :maxdepth: 2

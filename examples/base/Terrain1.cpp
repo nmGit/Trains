@@ -3,6 +3,8 @@
 #include "CityPlanner/Terrain/Terrain.h"
 #include "CityPlanner/World.h"
 #include "Drafter/Canvas.h"
+#include "Drafter/Overlay/DataTreeOverlay.h"
+#include "Drafter/Overlay/DebugOverlay.h"
 #include "Log/Log.h"
 #include "interface/worldview/WorldView.h"
 
@@ -29,13 +31,23 @@ void RunTerrain1() {
 
     canvas.Start();
     worldview.Start();
+    Drafter::DebugOverlay debug_overlay{canvas};
 
     // Place a couple of cities for visual context.
-    CityPlanner::City::config_t city1{"Riverside", {20, 20}};
-    CityPlanner::City::config_t city2{"Uptown",    {50, 40}};
-    auto &reg = world.AddRegion();
-    reg.AddCity(city1);
-    reg.AddCity(city2);
+    auto &reg    = world.AddRegion();
+    auto &city1  = reg.AddCity(CityPlanner::City::config_t{"Riverside", {20, 20}});
+    auto &city2  = reg.AddCity(CityPlanner::City::config_t{"Uptown",    {50, 40}});
+
+    // Build city data tree — structure is fixed, leaf values update live.
+    Drafter::DataTreeOverlay city_tree{canvas, "Cities"};
+
+    for (auto *city : {&city1, &city2}) {
+        auto *branch = city_tree.CreateBranch(city->GetConfig().name);
+        branch->AddLeaf("Size (tiles)", [city]{ return city->GetTiles().size(); });
+        branch->AddLeaf("Water",        [city]{ return city->GetRawResources().water; });
+        branch->AddLeaf("Wood",         [city]{ return city->GetRawResources().wood; });
+        branch->AddLeaf("Dirt",         [city]{ return city->GetRawResources().dirt; });
+    }
 
     while (true) {
         world.Service();

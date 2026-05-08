@@ -1,6 +1,6 @@
 #include "CityPlanner/Terrain/Rivers.h"
 
-#include "CityPlanner/Utils.h"
+#include "Types/Utils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -14,52 +14,55 @@ namespace {
 
 /// A single tile on the river center-line.
 struct river_node_t {
-    hex_coord_t coord;
-    hex_coord_t downstream; ///< Next tile in flow direction (self = terminal)
+    Types::hex_coord_t coord;
+    Types::hex_coord_t downstream; ///< Next tile in flow direction (self = terminal)
     int         width;      ///< Width to expand at this tile
 };
 
 /// Returns the angle (radians) from hex `a` to hex `b` in pixel space.
-float AngleBetween(hex_coord_t a, hex_coord_t b) {
+float AngleBetween(Types::hex_coord_t a, Types::hex_coord_t b) {
     auto pa = AxialToPixel(a);
     auto pb = AxialToPixel(b);
     return std::atan2(pb.y - pa.y, pb.x - pa.x);
 }
 
-/// Collects all tiles on the world boundary.
-std::vector<hex_coord_t> CollectEdgeTiles(const World &world) {
+/// Collects all tiles on the world boundary (in offset-coordinate space).
+std::vector<Types::hex_coord_t> CollectEdgeTiles(const World &world) {
     const auto              &cfg = world.GetConfig();
-    std::vector<hex_coord_t> edges;
+    std::vector<Types::hex_coord_t> edges;
+    // Top and bottom edges: offset_r == 0 and offset_r == height-1
     for (int q = 0; q < cfg.width; ++q) {
-        edges.push_back({q, 0});
-        edges.push_back({q, cfg.height - 1});
+        edges.push_back({q, 0 - q / 2});
+        edges.push_back({q, cfg.height - 1 - q / 2});
     }
-    for (int r = 1; r < cfg.height - 1; ++r) {
-        edges.push_back({0, r});
-        edges.push_back({cfg.width - 1, r});
+    // Left and right edges: q == 0 and q == width-1, interior offset rows
+    for (int or_ = 1; or_ < cfg.height - 1; ++or_) {
+        edges.push_back({0, or_});
+        edges.push_back({cfg.width - 1, or_ - (cfg.width - 1) / 2});
     }
     return edges;
 }
 
 /// Returns the center of the world in axial coords.
-hex_coord_t WorldCenter(const World &world) {
-    const auto &cfg = world.GetConfig();
-    return {cfg.width / 2, cfg.height / 2};
+Types::hex_coord_t WorldCenter(const World &world) {
+    const auto &cfg      = world.GetConfig();
+    int         center_q = cfg.width / 2;
+    return {center_q, cfg.height / 2 - center_q / 2};
 }
 
 /// Walks a single river center-line and appends nodes to `out`.
 /// `center_tiles` tracks all center-line tiles across all rivers/branches
 /// so that paths don't cross each other.
 void WalkRiver(const river_config_t &config, const World &world,
-               std::mt19937 &rng, std::set<hex_coord_t> &center_tiles,
-               std::vector<river_node_t> &out, hex_coord_t start, float heading,
+               std::mt19937 &rng, std::set<Types::hex_coord_t> &center_tiles,
+               std::vector<river_node_t> &out, Types::hex_coord_t start, float heading,
                int max_length, int base_width, int depth) {
     constexpr float k_pi = std::numbers::pi_v<float>;
 
     std::uniform_real_distribution<float> unit_dist(0.f, 1.f);
     std::uniform_real_distribution<float> sign_dist(-1.f, 1.f);
 
-    hex_coord_t current            = start;
+    Types::hex_coord_t current            = start;
     int         steps_since_branch = 0;
 
     // Index of the first node this walk appends (for downstream linking).
@@ -77,7 +80,7 @@ void WalkRiver(const river_config_t &config, const World &world,
 
         // --- Choose best neighbor aligned with heading ---
         auto        neighbors = Neighbors(current);
-        hex_coord_t best{};
+        Types::hex_coord_t best{};
         float       best_score = -2.f;
         bool        found      = false;
 
@@ -154,14 +157,14 @@ void WalkRiver(const river_config_t &config, const World &world,
 }
 
 /// Expands width around a center-line tile using BFS, writing to the world.
-void ExpandWidth(World &world, const std::set<hex_coord_t> &center_tiles,
-                 hex_coord_t center, int radius, hex_coord_t downstream,
+void ExpandWidth(World &world, const std::set<Types::hex_coord_t> &center_tiles,
+                 Types::hex_coord_t center, int radius, Types::hex_coord_t downstream,
                  int width_val) {
-    std::vector<hex_coord_t> frontier = {center};
-    std::set<hex_coord_t>    visited  = {center};
+    std::vector<Types::hex_coord_t> frontier = {center};
+    std::set<Types::hex_coord_t>    visited  = {center};
 
     for (int dist = 0; dist < radius; ++dist) {
-        std::vector<hex_coord_t> next_frontier;
+        std::vector<Types::hex_coord_t> next_frontier;
         for (auto &tile : frontier) {
             for (auto &nb : Neighbors(tile)) {
                 if (!world.InBounds(nb))
@@ -193,12 +196,12 @@ void Rivers::Generate(const river_config_t &config, World &world,
     std::shuffle(edges.begin(), edges.end(), rng);
 
     // Phase 1: Walk all center-lines (no world writes yet).
-    std::set<hex_coord_t>     center_tiles;
+    std::set<Types::hex_coord_t>     center_tiles;
     std::vector<river_node_t> nodes;
 
     int count = std::min(config.num_rivers, static_cast<int>(edges.size()));
     for (int i = 0; i < count; ++i) {
-        hex_coord_t source  = edges[i];
+        Types::hex_coord_t source  = edges[i];
         float       heading = AngleBetween(source, center);
 
         WalkRiver(config, world, rng, center_tiles, nodes, source, heading,
@@ -231,15 +234,16 @@ void Rivers::Service(const river_service_config_t &config, World &world,
                                                      config.headwater_noise);
 
     // Accumulate deltas separately to avoid iteration-order dependence.
-    std::map<hex_coord_t, float> deltas;
+    std::map<Types::hex_coord_t, float> deltas;
 
     for (const auto &[coord, props] : tiles) {
         if (!props.is_river)
             continue;
 
         // --- Headwater production ---
+        int  offset_r     = coord.r + coord.q / 2;
         bool is_headwater = (coord.q == 0 || coord.q == wcfg.width - 1 ||
-                             coord.r == 0 || coord.r == wcfg.height - 1);
+                             offset_r == 0 || offset_r == wcfg.height - 1);
         if (is_headwater) {
             float inflow =
                 std::max(0.f, config.headwater_rate + noise_dist(rng));
@@ -286,7 +290,7 @@ void Rivers::Service(const river_service_config_t &config, World &world,
 
     // Overflow pass: push excess water beyond max into river neighbors.
     // Use a queue so overflow cascades through cells not in deltas.
-    std::vector<hex_coord_t> overflow_queue;
+    std::vector<Types::hex_coord_t> overflow_queue;
     for (auto &[coord, _] : deltas) {
         if (world.GetTile(coord).water > config.max_water)
             overflow_queue.push_back(coord);

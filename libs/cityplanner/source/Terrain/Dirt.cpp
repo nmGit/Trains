@@ -1,5 +1,5 @@
 #include "CityPlanner/Terrain/Dirt.h"
-#include "CityPlanner/Utils.h"
+#include "Types/Utils.h"
 
 #include <algorithm>
 #include <deque>
@@ -19,18 +19,20 @@ void Dirt::Generate(const dirt_config_t &config, World &world, std::mt19937 &rng
 
     // --- Phase 1: place seed tiles with random dirt scores ---
     struct bfs_entry_t {
-        hex_coord_t coord;
+        Types::hex_coord_t coord;
         float       score;
     };
 
     std::deque<bfs_entry_t> queue;
-    std::set<hex_coord_t>   visited;
+    std::set<Types::hex_coord_t>   visited;
 
     int attempts = 0;
     int placed   = 0;
     while (placed < config.num_seeds && attempts < config.num_seeds * 50) {
         ++attempts;
-        hex_coord_t c{dist_q(rng), dist_r(rng)};
+        int oq = dist_q(rng);
+        int or_ = dist_r(rng);
+        Types::hex_coord_t c{oq, or_ - oq / 2};
         if (visited.count(c)) continue;
 
         float score         = dist_score(rng);

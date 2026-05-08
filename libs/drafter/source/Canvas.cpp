@@ -1,7 +1,9 @@
 #include "Drafter/Canvas.h"
 
 #include "Drafter/Camera.h"
+#include "Drafter/Overlay/Overlay.h"
 
+#include <algorithm>
 #include <thread>
 
 namespace Drafter {
@@ -32,9 +34,6 @@ void Canvas::CreateWindow() {
         return;
     }
 
-    SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT,
-                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
-
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH,
                                 WINDOW_HEIGHT);
@@ -52,17 +51,27 @@ void Canvas::Draw() {
         BLImageData img_data;
         img.get_data(&img_data);
 
-        const int   row_bytes = img_data.size.w * 4;
+        const int   row_bytes   = img_data.size.w * 4;
+        const int   src_stride  = static_cast<int>(img_data.stride);
         const auto *src = static_cast<const uint8_t *>(img_data.pixel_data);
         auto       *dst = reinterpret_cast<uint8_t *>(pixels);
         for (int y = 0; y < img_data.size.h; ++y) {
-            memcpy(dst + y * pixel_pitch, src + y * row_bytes, row_bytes);
+            memcpy(dst + y * pixel_pitch, src + y * src_stride, row_bytes);
         }
 
         SDL_UnlockTexture(texture);
 
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, texture, nullptr, nullptr);
+
+        // Screen-space overlays (ImGui, HUD) draw on top of the Blend2D output.
+        for (auto *overlay : m_overlays)
+            overlay->RenderScreen();
+
+        // Allow overlays to finalise batched rendering (e.g. ImGui frame flush).
+        for (auto *overlay : m_overlays)
+            overlay->FlushScreen();
+
         SDL_RenderPresent(renderer);
 
         // Restart the context with multithreaded rasterisation and fill
@@ -92,8 +101,18 @@ Canvas::sdl_event_t &Canvas::OnSDLEvent() {
     return m_sdl_event;
 }
 
+
 void Canvas::SetCamera(Camera *camera) {
     m_camera = camera;
+}
+
+void Canvas::RegisterOverlay(Overlay *overlay) {
+    m_overlays.push_back(overlay);
+}
+
+void Canvas::UnregisterOverlay(Overlay *overlay) {
+    m_overlays.erase(std::remove(m_overlays.begin(), m_overlays.end(), overlay),
+                     m_overlays.end());
 }
 
 bounds_t Canvas::GetViewBounds() {
@@ -119,7 +138,34 @@ Canvas::ServiceResult Canvas::Service() {
             Log::Info(m_log_context, "SDL_EVENT_QUIT received");
             return ServiceResult::Quit;
         }
-        m_sdl_event.Emit(event);
+
+        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+            const int w = event.window.data1;
+            const int h = event.window.data2;
+
+            ctx.end();
+
+            img = BLImage(w, h, BL_FORMAT_PRGB32);
+
+            SDL_DestroyTexture(texture);
+            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                                        SDL_TEXTUREACCESS_STREAMING, w, h);
+
+            Resize({static_cast<float>(w), static_cast<float>(h)});
+
+            ctx.begin(img, m_ctx_info);
+            ctx.set_fill_style(BLRgba32(0xFF272727));
+            ctx.fill_all();
+        }
+
+        // Overlays see the event first and may capture it.
+        bool captured = false;
+        for (auto *overlay : m_overlays) {
+            if (overlay->Service(event))
+                captured = true;
+        }
+        if (!captured)
+            m_sdl_event.Emit(event);
     }
 
     // Update camera and apply its transform so subsequent draws are in
@@ -135,6 +181,9 @@ Canvas::ServiceResult Canvas::Service() {
 
 void Canvas::Present() {
     if (m_camera) {
+        // RenderWorld is called while the camera transform is still active.
+        for (auto *overlay : m_overlays)
+            overlay->RenderWorld(ctx, GetDrawParams());
         ctx.restore();
     }
     Draw();

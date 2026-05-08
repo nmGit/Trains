@@ -6,10 +6,12 @@
 
 #include <SDL3/SDL.h>
 #include <blend2d/blend2d.h>
+#include <vector>
 
 namespace Drafter {
 
 class Camera;
+class Overlay;
 
 /**
  * @brief The root of all ui objects.
@@ -70,6 +72,27 @@ class Canvas : public Shape {
     void SetCamera(Camera *camera);
 
     /**
+     * @brief Register an overlay to receive events and render hooks each frame.
+     *
+     * @param overlay Non-owning pointer; the overlay must outlive the canvas
+     *                or call Detach() before being destroyed.
+     */
+    void RegisterOverlay(Overlay *overlay);
+
+    /**
+     * @brief Unregister a previously registered overlay.
+     *
+     * @param overlay The overlay to remove.
+     */
+    void UnregisterOverlay(Overlay *overlay);
+
+    /** @brief Returns the underlying SDL_Window for overlay initialisation. */
+    SDL_Window   *GetSDLWindow()   { return window; }
+
+    /** @brief Returns the underlying SDL_Renderer for overlay initialisation. */
+    SDL_Renderer *GetSDLRenderer() { return renderer; }
+
+    /**
      * @brief Returns the visible world-space rectangle.
      *
      * If a camera is attached, delegates to Camera::GetViewBounds().
@@ -108,9 +131,10 @@ class Canvas : public Shape {
     BLImage   img{WINDOW_WIDTH, WINDOW_HEIGHT, BL_FORMAT_PRGB32};
     BLContext ctx; ///< Started in Start() with m_ctx_info
 
-    Camera        *m_camera = nullptr;
-    resize_event_t m_resizeEvent;
-    sdl_event_t    m_sdl_event;
+    Camera                 *m_camera = nullptr;
+    std::vector<Overlay *>  m_overlays;
+    resize_event_t          m_resizeEvent;
+    sdl_event_t             m_sdl_event;
 
     LogContext m_log_context{"Drafter::Canvas"};
 };

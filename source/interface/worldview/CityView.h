@@ -28,7 +28,7 @@ class CityView {
 
   private:
     /// Returns the pixel-space center of a tile (scaled by m_cell_radius).
-    BLPoint TileCenter(CityPlanner::hex_coord_t tile) const;
+    BLPoint TileCenter(Types::hex_coord_t tile) const;
 
     CityPlanner::City *m_city;
     Drafter::Canvas   &m_canvas;

@@ -1,11 +1,13 @@
 #pragma once
 
-#include "CityPlanner/Types.h"
+#include "Types/Types.h"
 
 #include <set>
 #include <vector>
 
 namespace CityPlanner {
+
+class World;
 
 /**
  * @brief Represents a city within a region.
@@ -14,6 +16,17 @@ namespace CityPlanner {
  * growth algorithm driven by its parent Region. The set of claimed tiles is
  * updated each simulation tick by Region::GrowCities().
  */
+/**
+ * @brief Aggregated raw resource totals for a city's territory.
+ *
+ * Recalculated each tick by summing per-tile values across all claimed tiles.
+ */
+struct raw_resources_t {
+    float water = 0.f; ///< Total water level across river tiles
+    float wood  = 0.f; ///< Total wood across forest tiles
+    float dirt  = 0.f; ///< Total soil quality (dirt_score) across all tiles
+};
+
 class City {
   public:
     /**
@@ -55,7 +68,7 @@ class City {
          * The city is initialised with this single tile claimed and expands
          * outward from it each growth tick.
          */
-        hex_coord_t location;
+        Types::hex_coord_t location;
 
         /** @brief Growth behaviour parameters. */
         growth_config_t growth;
@@ -80,7 +93,7 @@ class City {
      * @brief Returns the set of hex tiles currently claimed by this city.
      * @return A const reference to the set of claimed hex_coord_t tiles.
      */
-    const std::set<hex_coord_t> &GetTiles() const;
+    const std::set<Types::hex_coord_t> &GetTiles() const;
 
     /**
      * @brief Claims a tile on behalf of this city.
@@ -89,7 +102,7 @@ class City {
      *
      * @param tile The tile to absorb into this city.
      */
-    void AbsorbTile(hex_coord_t tile);
+    void AbsorbTile(Types::hex_coord_t tile);
 
     /**
      * @brief Returns the set of unclaimed tiles adjacent to this city that lie
@@ -98,7 +111,7 @@ class City {
      * @param region_tiles The set of tiles that belong to the parent region.
      * @return A vector of candidate tiles eligible for growth this tick.
      */
-    std::vector<hex_coord_t> GetFrontier(const std::set<hex_coord_t> &region_tiles) const;
+    std::vector<Types::hex_coord_t> GetFrontier(const std::set<Types::hex_coord_t> &region_tiles) const;
 
     /**
      * @brief Computes the growth threshold for a candidate tile.
@@ -111,17 +124,29 @@ class City {
      * @param tile The candidate tile to evaluate.
      * @return The threshold value in [0, 1].
      */
-    float ComputeThreshold(hex_coord_t tile) const;
+    float ComputeThreshold(Types::hex_coord_t tile) const;
 
     /**
-     * @brief Per-tick update. Reserved for future city-level simulation logic.
+     * @brief Returns the raw resources aggregated from this city's territory.
+     *
+     * Updated each tick by Service().
+     *
+     * @return A const reference to the current raw resource totals.
      */
-    void Service();
+    const raw_resources_t &GetRawResources() const;
+
+    /**
+     * @brief Per-tick update. Recalculates raw resources from claimed tiles.
+     *
+     * @param world The world, used to look up per-tile properties.
+     */
+    void Service(const World &world);
 
   protected:
   private:
     config_t              m_config;
-    std::set<hex_coord_t> m_tiles;
+    std::set<Types::hex_coord_t> m_tiles;
+    raw_resources_t       m_raw_resources;
 };
 
 } // namespace CityPlanner

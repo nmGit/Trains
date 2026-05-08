@@ -16,7 +16,7 @@ class World;
 struct dirt_config_t {
     int   num_seeds = 20; ///< Number of seed tiles with random dirt scores
     float noise =
-        0.03f; ///< Score drift per BFS hop (controls gradient smoothness)
+        0.00f; ///< Score drift per BFS hop (controls gradient smoothness)
     float min_score = 0.1f; ///< Minimum dirt score assigned to seeds
     float max_score = 1.0f; ///< Maximum dirt score assigned to seeds
 };
@@ -59,7 +59,7 @@ struct river_service_config_t {
 struct forest_config_t {
     int   num_seeds     = 12;  ///< Number of initial forest seed tiles
     int   min_seed_dist = 8;   ///< Minimum hex distance between seeds
-    float min_dirt_score = 0.5f; ///< Minimum dirt score required for seed placement
+    float min_dirt_score = 0.1f; ///< Minimum dirt score required for seed placement
     float max_dirt_score = 0.75f; ///< Maximum dirt score that allows seed placement
 };
 

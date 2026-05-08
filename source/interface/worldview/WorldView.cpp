@@ -1,6 +1,6 @@
 #include "WorldView.h"
 
-#include "CityPlanner/Utils.h"
+#include "Types/Utils.h"
 #include "Drafter/Utils/Color.h"
 #include "Log/Log.h"
 
@@ -14,20 +14,34 @@ WorldView::WorldView(CityPlanner::World &world, Drafter::Canvas &canvas)
 
 void WorldView::Start() {
     m_world.OnRegionAdded().Subscribe(this, &WorldView::SlotRegionAdded);
+    m_canvas.OnSDLEvent().Subscribe(this, &WorldView::SlotMouseMotion);
 
     m_camera.Attach(m_canvas);
 
     // --- Compute world pixel bounds and set camera limits ---
     const auto &wcfg = m_world.GetConfig();
     if (wcfg.width > 0 && wcfg.height > 0) {
-        auto p_min = CityPlanner::AxialToPixel({0, 0});
-        auto p_max = CityPlanner::AxialToPixel({wcfg.width - 1, wcfg.height - 1});
-        float pad  = k_cell_radius * 2.f;
+        // The world is defined in even-q offset space: [0,width) x [0,height).
+        // Convert the four offset-space corners to axial, then to pixel to get
+        // the true bounding box.
+        const int max_q = wcfg.width - 1;
+        const int max_or = wcfg.height - 1;
+        auto p00 = Types::AxialToPixel({0,     0});
+        auto p10 = Types::AxialToPixel({max_q, -max_q / 2});
+        auto p01 = Types::AxialToPixel({0,     max_or});
+        auto p11 = Types::AxialToPixel({max_q, max_or - max_q / 2});
+
+        float x_min = std::min({p00.x, p10.x, p01.x, p11.x}) * k_cell_radius;
+        float x_max = std::max({p00.x, p10.x, p01.x, p11.x}) * k_cell_radius;
+        float y_min = std::min({p00.y, p10.y, p01.y, p11.y}) * k_cell_radius;
+        float y_max = std::max({p00.y, p10.y, p01.y, p11.y}) * k_cell_radius;
+
+        float pad = k_cell_radius * 2.f;
         Drafter::bounds_t wb{
-            .x = p_min.x * k_cell_radius - pad,
-            .y = p_min.y * k_cell_radius - pad,
-            .w = (p_max.x - p_min.x) * k_cell_radius + pad * 2.f,
-            .h = (p_max.y - p_min.y) * k_cell_radius + pad * 2.f,
+            .x = x_min - pad,
+            .y = y_min - pad,
+            .w = (x_max - x_min) + pad * 2.f,
+            .h = (y_max - y_min) + pad * 2.f,
         };
         m_camera.SetBounds(wb);
     }
@@ -36,7 +50,7 @@ void WorldView::Start() {
         .cell_radius  = k_cell_radius,
         .stroke_color = BLRgba32(0xFF474747),
         .stroke_width = 1.f,
-        .stroke_fade  = {.fade_start = 0.8f, .fade_end = 0.4f},
+        .stroke_fade  = {.fade_start = 1.9f, .fade_end = 0.9f},
     });
 }
 
@@ -44,29 +58,28 @@ void WorldView::Service() {
     BLContext             &ctx    = m_canvas.GetRenderer();
     Drafter::draw_params_t params = m_canvas.GetDrawParams();
 
-    // 1. Background hex grid — snap to nearest even-column boundary so the
-    //    pattern tiles seamlessly as the camera pans.
-    if (m_hex_grid.has_value()) {
-        const float col_step = 1.5f * k_cell_radius;
-        const float row_step = k_cell_radius * std::sqrt(3.0f);
-        const auto &vb       = params.view_bounds;
-
-        int snap_col = static_cast<int>(std::floor(vb.x / col_step));
-        if (snap_col % 2 != 0) snap_col -= 1;
-        const float snap_x = static_cast<float>(snap_col) * col_step;
-        const float snap_y = std::floor(vb.y / row_step) * row_step;
-
-        m_hex_grid->SetPosition({snap_x, snap_y});
-        m_hex_grid->Draw(ctx, params);
-    }
-
-    // 2. Terrain (rivers, etc.) — fill only, no borders.
+    DrawHexGrid(ctx, params);
     DrawTerrain(ctx, params);
+    DrawCities(ctx, params);
+    DrawTransport(params);
+    DrawHoveredTile(ctx, params);
+}
 
-    // 3. Cities
-    for (auto &city_view : m_city_views) {
-        city_view->Service(params);
-    }
+void WorldView::DrawHexGrid(BLContext &ctx, const Drafter::draw_params_t &params) {
+    if (!m_hex_grid.has_value()) return;
+
+    // Snap to nearest even-column boundary so the pattern tiles seamlessly.
+    const float col_step = 1.5f * k_cell_radius;
+    const float row_step = k_cell_radius * std::sqrt(3.0f);
+    const auto &vb       = params.view_bounds;
+
+    int snap_col = static_cast<int>(std::floor(vb.x / col_step));
+    if (snap_col % 2 != 0) snap_col -= 1;
+    const float snap_x = static_cast<float>(snap_col) * col_step;
+    const float snap_y = std::floor(vb.y / row_step) * row_step;
+
+    m_hex_grid->SetPosition({snap_x, snap_y});
+    m_hex_grid->Draw(ctx, params);
 }
 
 void WorldView::DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params) {
@@ -95,7 +108,7 @@ void WorldView::DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params
     for (const auto &[coord, props] : tiles) {
         if (props.dirt_score <= 0.f || props.is_river) continue;
 
-        auto  p  = CityPlanner::AxialToPixel(coord);
+        auto  p  = Types::AxialToPixel(coord);
         float cx = p.x * r;
         float cy = p.y * r;
 
@@ -125,7 +138,7 @@ void WorldView::DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params
     for (const auto &[coord, props] : tiles) {
         if (!props.is_river) continue;
 
-        auto  p  = CityPlanner::AxialToPixel(coord);
+        auto  p  = Types::AxialToPixel(coord);
         float cx = p.x * r;
         float cy = p.y * r;
 
@@ -153,7 +166,7 @@ void WorldView::DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params
     for (const auto &[coord, props] : tiles) {
         if (!props.is_forest) continue;
 
-        auto  p  = CityPlanner::AxialToPixel(coord);
+        auto  p  = Types::AxialToPixel(coord);
         float cx = p.x * r;
         float cy = p.y * r;
 
@@ -179,6 +192,27 @@ void WorldView::DrawTerrain(BLContext &ctx, const Drafter::draw_params_t &params
     ctx.restore();
 }
 
+void WorldView::SetNetwork(const CityPlanner::RailNetwork &network) {
+    m_transport_view.emplace(network, m_canvas, k_cell_radius);
+}
+
+void WorldView::SetBuilder(const CityPlanner::RailNetworkBuilder *builder) {
+    m_builder = builder;
+    if (!m_builder && m_transport_view) {
+        m_transport_view->ClearGhostPath();
+    }
+}
+
+void WorldView::SetTrackCursor(
+    std::optional<CityPlanner::RailNetwork::segment_t> cursor) {
+    m_track_cursor = cursor;
+}
+
+void WorldView::DrawTransport(const Drafter::draw_params_t &params) {
+    if (!m_transport_view.has_value()) return;
+    m_transport_view->Service(params);
+}
+
 void WorldView::SlotRegionAdded(CityPlanner::Region &region) {
     Log::Info(m_log_context, "Region added to WorldView");
     region.OnCityAdded().Subscribe(this, &WorldView::SlotCityAdded);
@@ -188,6 +222,56 @@ void WorldView::SlotCityAdded(CityPlanner::City &city) {
     Log::Info(m_log_context, "City added to WorldView");
     m_city_views.push_back(
         std::make_unique<CityView>(&city, m_canvas, k_cell_radius));
+}
+
+void WorldView::DrawCities(BLContext &, const Drafter::draw_params_t &params) {
+    for (auto &city_view : m_city_views) {
+        city_view->Service(params);
+    }
+}
+
+void WorldView::DrawHoveredTile(BLContext &ctx, const Drafter::draw_params_t &) {
+    if (!m_hovered_tile || !m_world.InBounds(*m_hovered_tile)) return;
+
+    constexpr float k_step = 2.0f * std::numbers::pi_v<float> / 6.0f;
+    auto  p  = Types::AxialToPixel(*m_hovered_tile);
+    float cx = p.x * k_cell_radius;
+    float cy = p.y * k_cell_radius;
+
+    ctx.save();
+    ctx.set_fill_style(BLRgba32(0x55FFFFFF)); // semi-transparent white
+
+    BLPath hex;
+    hex.move_to(cx + k_cell_radius * std::cos(0.f),
+                cy + k_cell_radius * std::sin(0.f));
+    for (int v = 1; v < 6; ++v) {
+        float a = k_step * static_cast<float>(v);
+        hex.line_to(cx + k_cell_radius * std::cos(a),
+                    cy + k_cell_radius * std::sin(a));
+    }
+    hex.close();
+    ctx.fill_path(hex);
+    ctx.restore();
+}
+
+void WorldView::SlotMouseMotion(const SDL_Event &event) {
+    if (event.type != SDL_EVENT_MOUSE_MOTION) return;
+
+    // Convert screen-space mouse position to world space, then to hex coords.
+    // AxialToPixel uses hex_size=1; world space is scaled by k_cell_radius.
+    Drafter::point_t world = m_camera.ScreenToWorld(
+        {event.motion.x, event.motion.y}, m_canvas.GetGeometry());
+    m_hovered_tile = Types::PixelToAxial(
+        {world.x / k_cell_radius, world.y / k_cell_radius});
+
+    if (m_builder && m_track_cursor && m_hovered_tile && m_transport_view) {
+        auto ghost = m_builder->Preview(*m_track_cursor, *m_hovered_tile, m_world);
+        if (ghost) {
+            m_transport_view->SetGhostPath(std::move(*ghost));
+        } else {
+            m_transport_view->ClearGhostPath();
+        }
+    }
 }
 
 } // namespace Trains

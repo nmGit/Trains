@@ -1,7 +1,7 @@
 #include "CityView.h"
 
-#include "CityPlanner/Utils.h"
 #include "Drafter/Utils/Color.h"
+#include "Types/Utils.h"
 
 #include <algorithm>
 #include <blend2d/blend2d.h>
@@ -33,30 +33,32 @@ constexpr int k_edge_to_neighbor[6] = {0, 2, 5, 1, 3, 4};
 
 } // namespace
 
-CityView::CityView(CityPlanner::City *city, Drafter::Canvas &canvas, float cell_radius)
+CityView::CityView(CityPlanner::City *city, Drafter::Canvas &canvas,
+                   float cell_radius)
     : m_city(city), m_canvas(canvas), m_cell_radius(cell_radius) {
-    float hue     = RandomHue();
+    float hue      = RandomHue();
     m_border_color = Drafter::Color::HsvToBL({hue, 0.90f, 1.00f, 255});
     m_fill_color   = Drafter::Color::HsvToBL({hue, 0.70f, 0.45f, 180});
 }
 
-BLPoint CityView::TileCenter(CityPlanner::hex_coord_t tile) const {
+BLPoint CityView::TileCenter(Types::hex_coord_t tile) const {
     // AxialToPixel returns coordinates at hex_size=1; scale by cell_radius.
-    auto p = CityPlanner::AxialToPixel(tile);
+    auto p = Types::AxialToPixel(tile);
     return {static_cast<double>(p.x * m_cell_radius),
             static_cast<double>(p.y * m_cell_radius)};
 }
 
 void CityView::Service(Drafter::draw_params_t params) {
     const auto &tiles = m_city->GetTiles();
-    if (tiles.empty()) return;
+    if (tiles.empty())
+        return;
 
     BLContext              &ctx         = m_canvas.GetRenderer();
     const Drafter::bounds_t view_bounds = params.view_bounds;
 
     constexpr float k_two_pi = 2.0f * std::numbers::pi_v<float>;
     constexpr float k_step   = k_two_pi / 6.0f;
-    const     float r        = m_cell_radius;
+    const float     r        = m_cell_radius;
 
     // --- Fill pass ---
     // Skip tiles whose bounding circle does not intersect the view.
@@ -65,7 +67,9 @@ void CityView::Service(Drafter::draw_params_t params) {
 
     for (const auto &tile : tiles) {
         auto [cx, cy] = TileCenter(tile);
-        if (!view_bounds.Intersects(static_cast<float>(cx), static_cast<float>(cy), r)) continue;
+        if (!view_bounds.Intersects(static_cast<float>(cx),
+                                    static_cast<float>(cy), r))
+            continue;
 
         BLPath hex;
         hex.move_to(cx + r * std::cos(0.0f), cy + r * std::sin(0.0f));
@@ -90,11 +94,14 @@ void CityView::Service(Drafter::draw_params_t params) {
     BLPath border;
     for (const auto &tile : tiles) {
         auto [cx, cy] = TileCenter(tile);
-        if (!view_bounds.Intersects(static_cast<float>(cx), static_cast<float>(cy), r)) continue;
+        if (!view_bounds.Intersects(static_cast<float>(cx),
+                                    static_cast<float>(cy), r))
+            continue;
 
-        auto neighbors = CityPlanner::Neighbors(tile);
+        auto neighbors = Types::Neighbors(tile);
         for (int e = 0; e < 6; ++e) {
-            if (tiles.count(neighbors[k_edge_to_neighbor[e]])) continue;
+            if (tiles.count(neighbors[k_edge_to_neighbor[e]]))
+                continue;
 
             float a0 = k_step * static_cast<float>(e);
             float a1 = k_step * static_cast<float>(e + 1);

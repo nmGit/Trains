@@ -4,24 +4,28 @@ enable_language(CXX)
 
 add_library(CityPlanner)
 
-target_sources(CityPlanner PRIVATE 
+target_sources(CityPlanner PRIVATE
 	source/City.cpp
 	source/World.cpp
 	source/Region.cpp
-	source/Utils.cpp
+	"../types/source/Utils.cpp"
 	source/Terrain/Terrain.cpp
 	source/Terrain/Dirt.cpp
 	source/Terrain/Rivers.cpp
 	source/Terrain/Forests.cpp
- )
+	source/Rail/RailNetwork.cpp
+	source/Rail/RailNetworkBuilder.cpp
+)
 
-target_include_directories(CityPlanner PUBLIC 
+target_include_directories(CityPlanner PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 ##### Events Library #####
 target_link_libraries(CityPlanner PUBLIC Events)
 
-
 ##### Log Library #####
 target_link_libraries(CityPlanner PUBLIC Log)
+
+##### Types Library #####
+target_link_libraries(CityPlanner PUBLIC Types)

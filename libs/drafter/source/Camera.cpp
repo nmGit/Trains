@@ -128,6 +128,13 @@ void Camera::ApplyTransform(BLContext &ctx, const geometry_t &geo) const {
                   static_cast<double>(-m_camera_y));
 }
 
+point_t Camera::ScreenToWorld(point_t screen, const geometry_t &geo) const {
+    return {
+        (screen.x - geo.size.w * 0.5f) / m_zoom + m_camera_x,
+        (screen.y - geo.size.h * 0.5f) / m_zoom + m_camera_y,
+    };
+}
+
 bounds_t Camera::GetViewBounds(const geometry_t &geo) const {
     const float half_w = (geo.size.w * 0.5f) / m_zoom;
     const float half_h = (geo.size.h * 0.5f) / m_zoom;

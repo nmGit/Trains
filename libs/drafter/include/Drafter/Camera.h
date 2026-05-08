@@ -69,6 +69,18 @@ class Camera {
     void ApplyTransform(BLContext &ctx, const geometry_t &geo) const;
 
     /**
+     * @brief Converts a screen-space point to world-space coordinates.
+     *
+     * Applies the inverse of the camera transform so that screen pixel
+     * positions (e.g. from a mouse event) can be mapped to world coordinates.
+     *
+     * @param screen Screen-space point in pixels (origin at top-left).
+     * @param geo    Canvas geometry (pixel dimensions).
+     * @return The corresponding world-space position.
+     */
+    point_t ScreenToWorld(point_t screen, const geometry_t &geo) const;
+
+    /**
      * @brief Returns the visible world-space rectangle.
      *
      * @param geo The canvas geometry (pixel dimensions).

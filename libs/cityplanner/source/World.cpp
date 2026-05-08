@@ -11,21 +11,22 @@ const World::config_t &World::GetConfig() const {
     return m_config;
 }
 
-bool World::InBounds(hex_coord_t tile) const {
-    return tile.q >= 0 && tile.q < m_config.width &&
-           tile.r >= 0 && tile.r < m_config.height;
+bool World::InBounds(Types::hex_coord_t tile) const {
+    if (tile.q < 0 || tile.q >= m_config.width) return false;
+    int offset_r = tile.r + tile.q / 2;
+    return offset_r >= 0 && offset_r < m_config.height;
 }
 
-tile_properties_t &World::GetTile(hex_coord_t tile) {
+World::tile_properties_t &World::GetTile(Types::hex_coord_t tile) {
     return m_tiles[tile];
 }
 
-const tile_properties_t *World::GetTileConst(hex_coord_t tile) const {
+const World::tile_properties_t *World::GetTileConst(Types::hex_coord_t tile) const {
     auto it = m_tiles.find(tile);
     return it != m_tiles.end() ? &it->second : nullptr;
 }
 
-const std::map<hex_coord_t, tile_properties_t> &World::GetTileMap() const {
+const std::map<Types::hex_coord_t, World::tile_properties_t> &World::GetTileMap() const {
     return m_tiles;
 }
 
@@ -49,7 +50,7 @@ World::region_added_event_t &World::OnRegionAdded() {
 
 void World::Service() {
     for (auto &r : m_regions) {
-        r.Service();
+        r.Service(*this);
     }
     if (m_terrain_config) {
         ServiceTerrain();
